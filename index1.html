@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apna Bank - Your Digital Wallet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles to complement Tailwind */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom gradient for the card header */
+        .indian-gradient {
+            background: linear-gradient(90deg, #FF9933, #FFFFFF, #138808);
+            height: 8px;
+        }
+        /* Simple animation for transaction items */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .transaction-item {
+            animation: fadeIn 0.3s ease-out;
+        }
+        /* Style for the message box */
+        #message-box {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Main Banking Card -->
+    <div class="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+        
+        <!-- Header with Indian Flag Gradient -->
+        <div class="indian-gradient"></div>
+        
+        <div class="p-6 md:p-8">
+            <!-- Logo and Title -->
+            <header class="flex items-center justify-between mb-8">
+                 <div class="flex items-center gap-3">
+                    <svg class="w-10 h-10 text-blue-600 dark:text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+                    </svg>
+                    <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Apna Bank</h1>
+                 </div>
+                 <span class="text-xs font-semibold text-slate-400 dark:text-slate-500">IND</span>
+            </header>
+
+            <!-- Balance Display -->
+            <div class="bg-blue-50 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-xl p-6 text-center mb-8">
+                <p class="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">Current Balance</p>
+                <p id="balance-display" class="text-4xl md:text-5xl font-extrabold text-slate-800 dark:text-white">₹50,000.00</p>
+            </div>
+
+            <!-- Action Area -->
+            <div>
+                <label for="amount-input" class="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Enter Amount</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 font-bold">₹</span>
+                    <input type="number" id="amount-input" placeholder="0.00" class="w-full pl-8 pr-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-800 dark:text-white">
+                </div>
+            </div>
+
+            <!-- Deposit and Withdraw Buttons -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                <button id="deposit-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 transform hover:scale-105 shadow-md">
+                    Deposit
+                </button>
+                <button id="withdraw-btn" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 transform hover:scale-105 shadow-md">
+                    Withdraw
+                </button>
+            </div>
+            
+            <!-- Message Box for notifications -->
+            <div id="message-box" class="mt-4 text-center text-sm font-medium p-2 rounded-lg opacity-0 transform -translate-y-2"></div>
+
+            <!-- Transaction History -->
+            <div class="mt-8">
+                <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4">Recent Transactions</h2>
+                <div id="transaction-list" class="space-y-3 max-h-40 overflow-y-auto pr-2">
+                    <!-- Transactions will be added here dynamically -->
+                     <p class="text-sm text-slate-400 dark:text-slate-500 text-center">No recent transactions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Element References ---
+        const balanceDisplay = document.getElementById('balance-display');
+        const amountInput = document.getElementById('amount-input');
+        const depositBtn = document.getElementById('deposit-btn');
+        const withdrawBtn = document.getElementById('withdraw-btn');
+        const transactionList = document.getElementById('transaction-list');
+        const messageBox = document.getElementById('message-box');
+
+        // --- State ---
+        let currentBalance = 50000.00;
+
+        // --- Utility Functions ---
+
+        /**
+         * Formats a number as Indian Rupees currency.
+         * @param {number} amount - The number to format.
+         * @returns {string} - The formatted currency string.
+         */
+        const formatCurrency = (amount) => {
+            return new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                minimumFractionDigits: 2
+            }).format(amount);
+        };
+        
+        /**
+         * Displays a message to the user for a few seconds.
+         * @param {string} text - The message to display.
+         * @param {string} type - 'success' or 'error'.
+         */
+        const showMessage = (text, type = 'success') => {
+            messageBox.textContent = text;
+            messageBox.className = `mt-4 text-center text-sm font-medium p-2 rounded-lg opacity-100 transform translate-y-0 ${type === 'success' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}`;
+            
+            setTimeout(() => {
+                messageBox.classList.add('opacity-0', '-translate-y-2');
+            }, 3000);
+        };
+
+        /**
+         * Adds a new transaction record to the list.
+         * @param {string} type - 'Deposit' or 'Withdrawal'.
+         * @param {number} amount - The transaction amount.
+         */
+        const addTransaction = (type, amount) => {
+            // Remove the initial "No recent transactions" message if it exists
+            const initialMessage = transactionList.querySelector('p');
+            if (initialMessage) {
+                initialMessage.remove();
+            }
+
+            const item = document.createElement('div');
+            item.className = 'transaction-item flex justify-between items-center bg-slate-50 dark:bg-slate-700 p-3 rounded-lg';
+            
+            const isDeposit = type === 'Deposit';
+            const amountColor = isDeposit ? 'text-green-500 dark:text-green-400' : 'text-orange-500 dark:text-orange-400';
+            const sign = isDeposit ? '+' : '-';
+
+            item.innerHTML = `
+                <div>
+                    <p class="font-semibold text-slate-700 dark:text-slate-200">${type}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">${new Date().toLocaleString()}</p>
+                </div>
+                <p class="font-bold ${amountColor}">${sign} ${formatCurrency(amount)}</p>
+            `;
+            
+            // Add the new transaction to the top of the list
+            transactionList.prepend(item);
+        };
+
+        /**
+         * Updates the balance display on the UI.
+         */
+        const updateDisplay = () => {
+            balanceDisplay.textContent = formatCurrency(currentBalance);
+        };
+
+        // --- Event Handlers ---
+
+        /**
+         * Handles the deposit action.
+         */
+        const handleDeposit = () => {
+            const amount = parseFloat(amountInput.value);
+            if (isNaN(amount) || amount <= 0) {
+                showMessage('Please enter a valid positive amount.', 'error');
+                return;
+            }
+            currentBalance += amount;
+            updateDisplay();
+            addTransaction('Deposit', amount);
+            showMessage(`Successfully deposited ${formatCurrency(amount)}!`, 'success');
+            amountInput.value = '';
+        };
+
+        /**
+         * Handles the withdrawal action.
+         */
+        const handleWithdraw = () => {
+            const amount = parseFloat(amountInput.value);
+            if (isNaN(amount) || amount <= 0) {
+                showMessage('Please enter a valid positive amount.', 'error');
+                return;
+            }
+            if (amount > currentBalance) {
+                showMessage('Insufficient funds for this withdrawal.', 'error');
+                return;
+            }
+            currentBalance -= amount;
+            updateDisplay();
+            addTransaction('Withdrawal', amount);
+            showMessage(`Successfully withdrew ${formatCurrency(amount)}!`, 'success');
+            amountInput.value = '';
+        };
+
+        // --- Initial Setup ---
+        
+        // Add event listeners to buttons
+        depositBtn.addEventListener('click', handleDeposit);
+        withdrawBtn.addEventListener('click', handleWithdraw);
+        
+        // Allow pressing Enter in the input field to trigger deposit
+        amountInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                // Default action is deposit if amount is entered
+                handleDeposit();
+            }
+        });
+
+        // Initialize the display on page load
+        updateDisplay();
+    </script>
+
+</body>
+</html>
