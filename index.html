@@ -128,6 +128,15 @@
             box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
         }
 
+        /* --- Error Message Styling --- */
+        .error-message {
+            color: #e53e3e;
+            font-size: 0.95em;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            min-height: 18px;
+        }
+
         /* --- Responsive Design --- */
         @media (max-width: 600px) {
             .registration-container {
@@ -156,18 +165,20 @@
         <p class="subtitle">Fill out the form to begin your journey.</p>
         
         <!-- The 'novalidate' attribute prevents the browser's default validation tooltips, allowing our CSS styles to handle feedback. -->
-        <form action="#" method="POST" novalidate>
+        <form id="registrationForm" action="#" method="POST" novalidate>
             
             <!-- Name Field -->
             <div class="form-group">
                 <label for="name">Full Name</label>
                 <input type="text" id="name" name="name" placeholder="e.g., Ravi Kumar" required>
+                <div class="error-message" id="nameError"></div>
             </div>
             
             <!-- Email Field -->
             <div class="form-group">
                 <label for="email">Email Address</label>
                 <input type="email" id="email" name="email" placeholder="you@example.com" required>
+                <div class="error-message" id="emailError"></div>
             </div>
             
             <!-- Age Field -->
@@ -175,6 +186,7 @@
                 <label for="age">Age</label>
                 <!-- 'min' and 'max' attributes provide numerical range validation -->
                 <input type="number" id="age" name="age" placeholder="Enter your age" required min="16" max="100">
+                <div class="error-message" id="ageError"></div>
             </div>
             
             <!-- Submit Button -->
@@ -183,5 +195,57 @@
         </form>
     </main>
 
+    <script>
+        const form = document.getElementById('registrationForm');
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const ageInput = document.getElementById('age');
+        const nameError = document.getElementById('nameError');
+        const emailError = document.getElementById('emailError');
+        const ageError = document.getElementById('ageError');
+
+        function validateName() {
+            if (nameInput.value.trim().length < 3) {
+                nameError.textContent = "Name must be at least 3 characters.";
+                return false;
+            }
+            nameError.textContent = "";
+            return true;
+        }
+
+        function validateEmail() {
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(emailInput.value.trim())) {
+                emailError.textContent = "Please enter a valid email address.";
+                return false;
+            }
+            emailError.textContent = "";
+            return true;
+        }
+
+        function validateAge() {
+            const age = parseInt(ageInput.value, 10);
+            if (isNaN(age) || age < 16 || age > 100) {
+                ageError.textContent = "Age must be between 16 and 100.";
+                return false;
+            }
+            ageError.textContent = "";
+            return true;
+        }
+
+        nameInput.addEventListener('input', validateName);
+        emailInput.addEventListener('input', validateEmail);
+        ageInput.addEventListener('input', validateAge);
+
+        form.addEventListener('submit', function(e) {
+            let valid = true;
+            if (!validateName()) valid = false;
+            if (!validateEmail()) valid = false;
+            if (!validateAge()) valid = false;
+            if (!valid) {
+                e.preventDefault();
+            }
+        });
+    </script>
 </body>
 </html>
