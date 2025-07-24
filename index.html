@@ -138,12 +138,45 @@
         }
 
         /* --- Responsive Design --- */
-        @media (max-width: 600px) {
+        @media (max-width: 900px) {
+            .header-banner,
             .registration-container {
-                padding: 25px;
+                max-width: 98vw;
+            }
+        }
+        @media (max-width: 600px) {
+            .header-banner {
+                height: 140px;
+                border-radius: 10px 10px 0 0;
+            }
+            .registration-container {
+                padding: 16px 6px;
+                border-radius: 0 0 10px 10px;
             }
             h1 {
-                font-size: 1.5rem;
+                font-size: 1.2rem;
+            }
+            .subtitle {
+                font-size: 0.98rem;
+            }
+            input {
+                font-size: 0.98rem;
+                padding: 10px 8px;
+            }
+            .submit-btn {
+                font-size: 1rem;
+                padding: 12px;
+            }
+        }
+        @media (max-width: 400px) {
+            .header-banner {
+                height: 80px;
+            }
+            .registration-container {
+                padding: 8px 2px;
+            }
+            h1 {
+                font-size: 1rem;
             }
         }
     </style>
